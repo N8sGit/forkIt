@@ -3,25 +3,61 @@ import { Button, StyleSheet, Text, View , TextInput, TouchableOpacity, Keyboard,
 
 export default class App extends React.Component {
   state = {
-    input : ''
+    input : 'nanographql',
+    result: [],
+    error: ''
   }
   /*
   requirements: fuzzy matching + display matches in a dropdown under the textInput
   search api, repo api integrations
+  //ranks repos in terms of quality---forks with the most commits, stars,
   textinput for searching the repos
   output display  
   */
   
-  fetchItems = () => {
-    console.log('WORKED')
-    // fetch('https://api.github.com', {
-    //   method: 'GET',
-    //   headers:{
-    //     'Accept': 'application/vnd.github.v3+json',
-    //     'Content-Type': 'application/json'
-    //   }
-    // })
+  fetchRepo = () => {
+    let keywords = this.state.input.split(' ').join('+')
+    fetch(`https://api.github.com/search/repositories?q=${keywords}`, {
+      method: 'GET',
+      headers:{
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      }
+    })
+    .then((response)=>{
+      if(response.ok){
+      return response.json()
+      }
+      else{
+        console.error('Not found')
+      }
+    })
+    .then((output)=>{
+      let content = output.items[0]
+      let forksUrl = content['forks_url']
+      let forks = this.fetchForks(forksUrl)
+
+    })
     Keyboard.dismiss()
+  }
+
+   fetchForks = (url) => {
+     let forks
+      fetch(url,{
+      method: 'GET',
+      headers:{
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(result =>{
+        return result.json()
+      })
+      .then(output => {
+        console.log(output, 'fetchfork output')
+        forks = output 
+      })
+      return forks 
   }
 
 
@@ -46,7 +82,7 @@ export default class App extends React.Component {
           />
       
         <Button 
-          onPress={this.fetchItems} 
+          onPress={this.fetchRepo} 
           title="Go!" > </Button> 
       </View>
   </View>
