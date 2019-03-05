@@ -29,35 +29,34 @@ export default class App extends React.Component {
       return response.json()
       }
       else{
-        console.error('Not found')
+        this.setState({error: 'Nothing found!'})
       }
     })
     .then((output)=>{
       let content = output.items[0]
       let forksUrl = content['forks_url']
-      let forks = this.fetchForks(forksUrl)
-
+      return this.fetchForks(forksUrl)
+    }).then((forks) => {
+      console.log(forks)
     })
-    Keyboard.dismiss()
-  }
+  Keyboard.dismiss()
+}
 
-   fetchForks = (url) => {
-     let forks
-      fetch(url,{
+  fetchForks = (url) => {
+    return fetch(url,{
       method: 'GET',
       headers:{
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
-      }
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json'
+       }
     })
       .then(result =>{
         return result.json()
       })
-      .then(output => {
-        console.log(output, 'fetchfork output')
-        forks = output 
-      })
-      return forks 
+        .then(output => {
+          console.log(output, 'fetchfork output')
+          return output 
+        })
   }
 
 
