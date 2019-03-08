@@ -3,25 +3,60 @@ import { Button, StyleSheet, Text, View , TextInput, TouchableOpacity, Keyboard,
 
 export default class App extends React.Component {
   state = {
-    input : ''
+    input : 'nanographql',
+    result: [],
+    error: ''
   }
   /*
   requirements: fuzzy matching + display matches in a dropdown under the textInput
   search api, repo api integrations
+  //ranks repos in terms of quality---forks with the most commits, stars,
   textinput for searching the repos
   output display  
   */
   
-  fetchItems = () => {
-    console.log('WORKED')
-    // fetch('https://api.github.com', {
-    //   method: 'GET',
-    //   headers:{
-    //     'Accept': 'application/vnd.github.v3+json',
-    //     'Content-Type': 'application/json'
-    //   }
-    // })
-    Keyboard.dismiss()
+  fetchRepo = () => {
+    let keywords = this.state.input.split(' ').join('+')
+    fetch(`https://api.github.com/search/repositories?q=${keywords}`, {
+      method: 'GET',
+      headers:{
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      }
+    })
+    .then((response)=>{
+      if(response.ok){
+      return response.json()
+      }
+      else{
+        this.setState({error: 'Nothing found!'})
+      }
+    })
+    .then((output)=>{
+      let content = output.items[0]
+      let forksUrl = content['forks_url']
+      return this.fetchForks(forksUrl)
+    }).then((forks) => {
+      console.log(forks)
+    })
+  Keyboard.dismiss()
+}
+
+  fetchForks = (url) => {
+    return fetch(url,{
+      method: 'GET',
+      headers:{
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json'
+       }
+    })
+      .then(result =>{
+        return result.json()
+      })
+        .then(output => {
+          console.log(output, 'fetchfork output')
+          return output 
+        })
   }
 
 
@@ -46,7 +81,7 @@ export default class App extends React.Component {
           />
       
         <Button 
-          onPress={this.fetchItems} 
+          onPress={this.fetchRepo} 
           title="Go!" > </Button> 
       </View>
   </View>
